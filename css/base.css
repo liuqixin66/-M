@@ -1,0 +1,60 @@
+body{
+    font-size: 14px;
+    color: #333;
+}
+*,*::before,*::after{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+
+}
+
+
+ul{
+    list-style: none;
+}
+a{
+    text-decoration: none;
+    color: #333;
+}
+input[type="text"],input[type="password"],input[type="search"],textarea{
+    border: none;
+    outline: none;
+    resize: none;
+    /*清除立体效果*/
+    -webkit-appearance: none;
+}
+
+/*common公共样式*/
+.f_left{
+    float: left;
+}
+.f_right{
+    float: right;
+}
+
+.clearfix::before,.clearfix::after{
+    content: "";
+    height: 0;
+    line-height: 0;
+    visibility: hidden;
+    display: block;
+    clear: both;
+}
+.ml10{
+    margin-left: 10px;
+}
+.mr10{
+    margin-right: 10px;
+}
+.mt10{
+    margin-top: 10px;
+}
+.mb10{
+    margin-bottom: 10px;
+}
+
+[class ^="icon_"],[class*=" icon_"]{
+    background: url("../images/sprites.png") no-repeat 0 0 /200px 200px;
+}
