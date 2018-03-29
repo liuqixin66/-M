@@ -1,0 +1,287 @@
+0.在文件开头添加<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">      viewport：视口   width=device-width：宽度=设备宽度   user-scalable=no或0：将控制用户无法进行触屏扩大或缩小网页
+	         initial-scale=1.0:initial-scale=1.0：表示初始的缩放比例
+1.首先创建一个最大的布局容器layout
+
+
+2.创建header顶部栏
+3.创建header_box容器
+4.左侧的a logo标签
+5.右侧的a 登录标签
+6.左侧绝对定位，设置宽高，背景定位0 -106px
+7.右侧绝对定位，设置宽高
+8.属性选择器：[class ^="icon_"],[class*=" icon_"]{
+    background: url("../images/sprites.png") no-repeat 0 0 /200px 200px;}
+	//  class ^="icon_"以***开头，class*=" icon_"包含***，   class$=" icon_"以***结尾
+	//0 0处填写center或top等背景定位的单词
+	//  /200px 200px 以200，200缩放，原图400px,400px(二倍图缩放技术)
+9.中间添加新表单元素和搜索的span中的图标 input type="search" 
+10.中间部分设置宽度100%，padding-left：左边logo的宽度+left，padding-right：右边登录的宽度（双飞翼布局或圣杯布局技术）
+
+*********header中的js部分*********
+
+代码封装在3个函数中，入口函数的window.onload中只需调用3个函数即可
+var search = function(){ 需求向下滚动时当超出banner部分时透明逐渐消失
+    /*默认顶部为透明*/
+    var jdHeaderBox= document.querySelector('.jd_header_box');头部的大容器
+    window.onscroll = function (e) {检测页面卷动
+        /*兼容获取页面卷曲高度*/
+        var scrollTop = window.pageYOffset||document.body.scrollTop||document.documentElement.scrollTop;
+        /*轮播图高度*/
+        var jdBanner = document.querySelector('.jd_banner');
+        /*获取轮播图部分的高度0*/
+        var height = jdBanner.offsetHeight;
+        var opacity=0;  定义一开始是透明
+        if(scrollTop<height){卷曲距离没有大于banner的高度时
+            opacity = scrollTop/height*0.85; 
+        }else{
+            opacity=0.85;
+        }
+        jdHeaderBox.style.background='rgba(216,80,92,'+opacity+')';
+    };
+    /*当页面滚动时，透明度变大 最大为0.85*/
+    /*当超过轮播图的位置时，透明度就不变了*/
+};
+
+
+11.创建轮播图部分（共8张图，但是考虑到手机端左右划共10张图：8123456781）
+12.10张上边父元素li ul添加清除浮动 .clearfix::before,.clearfix::after{前后都清除浮动
+    					content: ""; 必须加，没内容也需添加
+    					height: 0;不占位
+    					line-height: 0; 没行高
+    					visibility: hidden; 隐藏
+    					display: block; 隐藏
+    					clear: both;} 都清除
+13.轮播图下方的8个小圆点，轮到哪张图就给哪个添加now类
+14.banner轮播图类width：100% 绝对定位，overflo：whidden
+15.放图片的ulwidth：1000% transform：translateX（-10%）将第一张（8）移出  （变形中的平移效果）
+   移动端webkit全兼       -webkit-transform: translateX(-10%)兼容代码
+
+*********banner中的js部分***************
+
+var banner = function(){  banner部分的函数
+ var jdBanner = document.querySelector('.jd_banner');选择banner部分
+
+ /*获取当前容器的宽度*/
+ var width = jdBanner.offsetWidth;  
+ /*图片容器*/
+ var imageBox = jdBanner.querySelector('ul:first-child');
+ /*点容器*/
+ var pointBox = jdBanner.querySelector('ul:last-child');
+ /*所有的点*/
+ var lis = pointBox.querySelectorAll('li');
+
+ var addTransition = function () {   定义添加动画的函数
+     imageBox.style.transition='all 0.3s';  设定动画执行时间为0.3S
+     imageBox.style.webkitTransition='all 0.3s';  webkit兼容函数
+ };
+ var removeTransition = function () {   定义清除动画的函数
+     imageBox.style.transition='none';
+     imageBox.style.webkitTransition='none';
+ };
+ var setTranslateX = function (translateX) {   设置平移动画的距离，传参数translateX
+     imageBox.style.transform = 'translateX('+translateX+'px)';
+     imageBox.style.webkitTransform= 'translateX('+translateX+'px)';
+ };
+ 
+/*自动轮播+无缝+过渡动画+位移*/
+ var index = 1;  设置索引值为1，因为当前所在图片1的索引为1
+ var timer = setInterval(function () { 设定定时器 ，1S切换
+     index++;                          索引值自增1
+     /*动画切换*/
+     addTransition();                  导入动画添加动画
+     setTranslateX(-index * width);     导入设置平移距离的函数，传入参数因为默认轮播图向右滚动，所以ul要向左移动为-index*width
+ },1000);
+ /*最后一张图片切换完成 瞬间定位到第二张*/
+    imageBox.addEventListener('transitionend',function(){   添加事件监听，transitionend：事件在 CSS 完成过渡后触发。
+        if(index>=9){
+            index=1;
+            /*取消过渡*/
+           removeTransition();
+            /*位移*/
+            setTranslateX(-index * width);
+        }else if(index<=0){
+            index=8;
+            /*取消过渡*/
+          removeTransition();
+            /*位移*/
+        setTranslateX(-index * width);
+        }
+        /*点对应当前图片 根据索引改点的now样式*/
+        /*index范围1-8 所以li为0-7*/
+        setPoint();                  调用setPoint函数
+    });
+    var setPoint= function(){
+        pointBox.querySelector('li.now').classList.remove('now'); //选中当前被选中的移除now
+        lis[index-1].classList.add('now');   //给所有li中索引为index-1的添加now
+    };
+
+
+/*滑动功能  滑动过程中轮播图停止 使用touch事件更改触摸的容器的位置*/
+var startX  =0;	      //初始化开始位置
+var distanceX = 0;   //初始化移动距离
+var startTime =0;   //初始化开始时间
+var isMove= false; //定义一个开关，使程序更加稳定
+imageBox.addEventListener('touchstart',function(e){  //添加touchstart事件监听
+    startX = e.touches[0].clientX;		    //获取一开始的第一触点的位置 e:时间参数对象中的touches支持多点触控所以选取第一个的clientX属性
+    startTime = Date.now();			   //获取当前时间
+    clearInterval(timer);			  //清除timer定时器（严谨起见）
+});
+imageBox.addEventListener('touchmove',function(e){  //添加touchmove事件监听
+    e.preventDefault();				   //清除浏览器默认事件 ，清除滚动条
+    clearInterval(timer);			  //清除timer定时器（严谨起见）
+    var moveX = e.touches[0].clientX;		 //获取移动事件中的当前位置
+    distanceX = moveX-startX;			//计算移动距离右为负数 左为正数
+    var translateX = -index*width +distanceX;  //计算移动的距离为-index*width为当前第几张的默认移动距离再加上移动距离即可
+    removeTransition();			      //清除动画	
+    setTranslateX(translateX);	 	     //设置移动动画的距离
+    isMove =true;			    //严谨起见，重置isMove的值
+});
+imageBox.addEventListener('touchend',function(e){    //添加touchend事件监听
+    if(isMove){					    //判断一定滑动过
+        var t = Date.now() - startTime;            //计算滑动的总毫秒数
+        var d = Math.abs(distanceX);		  //求移动总距离的绝对值
+        var speed = d/t;			 //怎么求这个速度   移动的距离/滑动的时间 = 速度
+        					/*经过测试  体感速度  0.5 px/ms 比较快*/
+        if(speed > 0.3){
+            				      /*6. 附加功能 滑动的速度超过（手感的比较快的速度）切换图片  上一张  下一张*/        			
+            if (distanceX > 0) {             /*右滑  上一张*/
+                index--;
+            }
+            else {
+                index++;		 /*左滑  下一张*/
+            }
+           
+            addTransition(); 	      /*切换动画*/
+            setTranslateX(-index * width);        //设置移动距离
+        }else{
+            if (Math.abs(distanceX) < width / 3) {   /*4. 滑动结束 滑动的距离 不超过三分之一  吸附回去 */
+                addTransition();		      /*吸附效果 有动画  回到原来的位置*/
+                setTranslateX(-index * width);
+            }
+            /*5. 滑动结束 滑动的距离 超过三分之一  图片切换  上一张  下一张 */
+            else {
+                if (distanceX > 0) {   /*右滑  上一张*/
+                    index--;
+                }
+                else {
+                    index++;        /*左滑  下一张*/
+                }
+                addTransition();   /*切换动画*/
+                setTranslateX(-index * width);
+            }
+        }
+    }
+
+    /*1. 定时器重新开启*/
+    clearInterval(timer); //防止多次绑定定时器
+    timer = setInterval(function () {  //在设置新的定时器，滑动后也可以在自动播放
+        index++;
+        /*动画切换*/
+        /*过渡*/
+        addTransition();
+        /*位移*/
+        setTranslateX(-index * width);
+    }, 1000);
+    /*2. 如果没有滑动过*/
+    isMove = false;
+    startX = 0;
+    startTime = 0;
+    distanceX = 0;
+    /*重置参数*/
+});
+};
+
+16.每张图片的liwidth：100% 左浮动
+17.每张图片的a 和img  width：100% display：block变块元素
+18.下面的小圆点绝对定位，并给有now的添加背景颜色
+
+
+19.导航部分8个块
+20.ul>li>a>img 并给ul添加clearfix清除浮动类 ，ulwidth100% ; ul li:float:left width25%;awidth100%;img w40h40margin0
+
+
+21商品共4个部分
+22头分左右：左的倒计时部分
+var downTime = function () {
+/*模拟需要倒计时4小时*/
+/*每秒更新数据*/
+var spanList = document.querySelectorAll('.sk_time span');//选中所有的时间的span
+ var time = 4*60*60;                //总倒计时时间
+ var timer =setInterval(function(){ //设置定时器
+     time--;			   //总时间递减
+     var h = Math.floor(time/3600);//设置小时数
+     var m = Math.floor(time%3600/60);//设置分钟数
+     var s = Math.floor(time%60);     //设置秒数
+     spanList[0].innerHTML=Math.floor(h/10);//设置第一个span<10则为零
+     spanList[1].innerHTML=h % 10;	    //设置第二个span
+
+     spanList[3].innerHTML=Math.floor(m/10);//设置第4个span
+     spanList[4].innerHTML=m%10;	    //设置第5个span
+
+     spanList[6].innerHTML=Math.floor(s/10);//设置第7个span
+     spanList[7].innerHTML=s%10;	    //设置第8个span
+ },1000);
+};
+23.下面3个部分使用组合样式，添加多个样式，根据需求添加样式名
+
+
+24.商品页面category.html
+25.使页面变为全屏的方法
+1：body,html{
+    height: 100%;
+}
+.jd_container{
+    width: 100%;
+    height: 100%;
+    background: pink;
+2：.jd_container{
+    width: 100%;
+    height: 100%;
+
+    position: absolute;
+    left: 0;
+    top: 0;
+}
+
+26.顶部图标为精灵图，精灵图图片大，放置图标的容器小，如果缩放别的精灵图上的图标会乱入，
+采用的技术
+之前.icon_的都添加了精灵图背景
+.jd_topBar .icon_back{
+    left: 0;
+    background-position: -20px 0;
+    padding: 12px 10px;
+    background-origin:content-box ;显示content-box背景相对于内边框来定位
+				       border-box背景相对于边框盒来定位
+				       content-box背景相对于内容框来定位
+    background-clip: content-box; 剪裁 content-box背景相对于内边框来剪裁
+				       border-box背景相对于边框盒来剪裁
+				       content-box背景相对于内容框来剪裁 
+
+}
+27滑动阻尼效果（引用插件iscroll.js）
+js代码window.onload = function(){
+    new IScroll('aside');
+    new IScroll('article');
+};
+要求：想要做效果的部分必须得有一个盒子包裹着
+28左侧固定右侧自适应效果
+/*右侧*/
+.jd_category article{
+    height: 100%;
+    overflow: hidden;
+}
+/*分类容器*/
+.jd_category{
+    /*占满剩余的高度*/
+    width: 100%;
+    height: 100%;
+    padding-top: 45px;
+
+}
+/*左侧*/
+.jd_category aside{
+    width: 90px;
+    height: 100%;
+    float: left;
+    overflow: hidden;
+}
